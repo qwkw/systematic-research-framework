@@ -5,7 +5,6 @@ and closes dead strategies cleanly. Hand it to a coding agent, and the agent bui
 an Obsidian vault plus a Python engine for testing trading and forecasting ideas:
 intraday, long-horizon portfolio, prediction markets, or any domain you add.
 
-By **@negvol**, 2026.
 
 | file | what it is |
 |---|---|
