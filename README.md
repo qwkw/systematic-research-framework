@@ -49,7 +49,7 @@ By **@negvol**, 2026.
 
    ```bash
    mkdir my-research && cd my-research
-   curl -O https://raw.githubusercontent.com/koyeoner/systematic-research-framework/main/FRAMEWORK.md
+   curl -O https://raw.githubusercontent.com/qwkw/systematic-research-framework/main/FRAMEWORK.md
    git init
    ```
 
