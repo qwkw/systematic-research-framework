@@ -213,7 +213,7 @@ Example:
 ---
 id: H-0007
 type: hypothesis
-title: Opening-range break continuation, equity index futures
+title: Example breakout continuation (placeholder instrument)
 created: 2026-01-15
 domain: intraday
 status: registered
@@ -222,7 +222,7 @@ origin: user
 mechanism: "none: pattern only"
 mue: { metric: net_expectancy_per_trade, value: 1.5, unit: ticks }
 primary_metric: per_session_net_pnl
-datasets: ["[[D-es-1m]]"]
+datasets: ["[[D-example-bars]]"]
 tiers_hash: 3f1c…
 spec_hash: 9ab0…
 ledger_seq: 42
@@ -538,9 +538,7 @@ Check every conditional result for each item before believing it:
 ### R13 — Operations
 1. The chain and `LEDGER.md` are verified on every run. A mismatch stops everything.
 2. Chunked or parallel builds must be bit-identical to sequential ones.
-3. After stopping a parallel job, kill the parent first, then the children, so the
-   parent does not relaunch stale work.
-4. Secrets live only in `.env` (git-ignored). Never put them in notes, logs or figures.
+3. Secrets live only in `.env` (git-ignored). Never put them in notes, logs or figures.
 
 ---
 
@@ -908,9 +906,12 @@ class Domain:
    project). Levels on an adjusted series are not quotable prices. Detect roll
    steps (an outsized move at the stitch on low volume) and screen sessions trading
    the expiring contract.
-3. **Quotes and trades:** use the exchange aggressor flag where available; do not
-   de-duplicate same-millisecond fills; quote returns off the mid to remove
-   bid-ask bounce; measure the noise floor first.
+3. **Quotes and trades:** quote returns off the mid to remove bid-ask bounce, and
+   measure the noise floor at your horizon first (R4.5).
+   *Tick / trade-and-quote data only (skip if you work from bars):* use the
+   exchange's aggressor-side flag where the feed provides one, rather than inferring
+   side from price; and check whether rows sharing a timestamp are separate fills of
+   one order before de-duplicating them (§6.3 step 3).
 4. **Fills:** next bar, crossing the spread. Stops fill at least one tick through
    with empirical slippage. Market orders carry latency slippage. Any same-bar
    ambiguity goes against the trade.
@@ -1068,6 +1069,13 @@ class Spec:
 
 ## 17. Constants (defaults in `config/constants.yaml`)
 
+These are **starting conventions, not measured results**. Some are standard in the
+literature (90% CIs, 80% power, DSR 0.95, FDR q = 0.10). Others are judgement calls
+chosen to be conservative: the 200 / 100 sample floors, the positive-control t ≥ 4,
+the 2-cluster embargo and PBO 0.30. Review them at kickoff and change any that do
+not fit your domain. Fix them in `RULES.md` before the first registration. After
+that they change only by amendment (R0.4), never to rescue a result.
+
 | name | default | use |
 |---|---|---|
 | `SEED` | 20260101 | all randomness |
@@ -1080,9 +1088,9 @@ class Spec:
 | `PBO_MAX` | 0.30 | soft gate |
 | `FDR_Q` | 0.10 | screens |
 | `CSCV_S` | 16 | PBO blocks |
-| `CONTROL_T` | 4.0 | positive control |
+| `CONTROL_T` | 4.0 | positive control (convention: a planted edge should be found decisively) |
 | `EMBARGO_CLUSTERS` | 2 | tier and fold embargo (≥ label horizon) |
-| `MIN_TRADES` / `MIN_CLUSTERS` | 200 / 100 | floors (domain may override, declared in RULES before the first registration) |
+| `MIN_TRADES` / `MIN_CLUSTERS` | 200 / 100 | sample floors (convention; the binding minimum is the power check, R6.8; a domain may override, declared in RULES before the first registration) |
 | `CAUSALITY_CUTS` | 50 | truncation test points |
 | `ERAS` | 3 | sign agreement |
 
@@ -1232,8 +1240,8 @@ PL.band(ax, x, lo5, hi95); PL.band(ax, x, lo25, hi75, inner=True)
 PL.refline(ax, 0, "0")
 PL.title(ax, "H-0007 equity, net of primary costs", "per-session sum, bootstrap bands 5-95 / 25-75")
 PL.legend(ax)
-PL.caption(f, "INCONCLUSIVE · N_total 38 · N_eff 11.2 · MDE 1.9 t · MUE 1.5 t · DSR 0.71 · PBO 0.22")
-PL.save(f, "F-0004_verdict", note=["D-es-1m", "212,880 rows", "DEV 2015-2020 | TEST 2021-2023"])
+PL.caption(f, f"{verdict} · N_total {n_total} · N_eff {n_eff:.1f} · MDE {mde:.2f} · MUE {mue:.2f} · DSR {dsr:.2f} · PBO {pbo:.2f}")
+PL.save(f, "F-0004_verdict", note=[dataset_id, f"{n_rows:,} rows", tiers_label])
 ```
 
 ```python
